@@ -5,9 +5,11 @@ import belajarspringrestfulapi.restful.entity.User;
 import belajarspringrestfulapi.restful.model.ContactResponse;
 import belajarspringrestfulapi.restful.model.CreateContactRequest;
 import belajarspringrestfulapi.restful.repository.ContactRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -44,5 +46,13 @@ public class ContactService {
                 .email(contact.getEmail())
                 .phone(contact.getPhone())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public ContactResponse get(User user, String id) {
+        Contact contact = contactRepository.findFirstByUserAndId(user, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact not found"));
+
+        return toContactResponse(contact);
     }
 }
