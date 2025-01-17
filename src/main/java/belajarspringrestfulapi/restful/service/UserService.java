@@ -2,6 +2,7 @@ package belajarspringrestfulapi.restful.service;
 
 import belajarspringrestfulapi.restful.entity.User;
 import belajarspringrestfulapi.restful.model.RegisterUserRequest;
+import belajarspringrestfulapi.restful.model.UpdateUserRequest;
 import belajarspringrestfulapi.restful.model.UserResponse;
 import belajarspringrestfulapi.restful.repository.UserRepository;
 import belajarspringrestfulapi.restful.security.BCrypt;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -42,6 +44,26 @@ public class UserService {
                 .builder()
                 .username(user.getUsername())
                 .name(user.getName())
+                .build();
+    }
+
+    @Transactional
+    public UserResponse update(User user, UpdateUserRequest request) {
+        validateService.validate(request);
+
+        if (Objects.nonNull(request.getName())) {
+            user.setName(request.getName());
+        }
+
+        if (Objects.nonNull(request.getPassword())) {
+            user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+        }
+
+        userRepository.save(user);
+
+        return UserResponse.builder()
+                .name(user.getName())
+                .username(user.getUsername())
                 .build();
     }
 }
