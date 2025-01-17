@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UserControllerTest {
+class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -41,9 +41,9 @@ public class UserControllerTest {
     @Test
     void testRegisterSuccess() throws Exception {
         RegisterUserRequest request = new RegisterUserRequest();
-        request.setUsername("sandy");
-        request.setPassword("password");
-        request.setName("Sandy Dwi Handoko Trapsilo");
+        request.setUsername("test");
+        request.setPassword("test");
+        request.setName("Test");
 
         mockMvc.perform(
                 post("/api/users")
@@ -52,6 +52,56 @@ public class UserControllerTest {
                         .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
                 status().isOk()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertEquals("OK", response.getData());
+        });
+    }
+
+    @Test
+    void testRegisterBadRequest() throws Exception {
+        RegisterUserRequest request = new RegisterUserRequest();
+        request.setUsername("");
+        request.setPassword("");
+        request.setName("");
+
+        mockMvc.perform(
+                post("/api/users")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isBadRequest()
+        ).andDo(result -> {
+            WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
+            });
+
+            assertNotNull(response.getErrors());
+        });
+    }
+
+    @Test
+    void testRegisterDuplicate() throws Exception {
+        User user = new User();
+        user.setUsername("test");
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
+        user.setName("Test");
+        userRepository.save(user);
+
+        RegisterUserRequest request = new RegisterUserRequest();
+        request.setUsername("test");
+        request.setPassword("test");
+        request.setName("Test");
+
+        mockMvc.perform(
+                post("/api/users")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+        ).andExpectAll(
+                status().isBadRequest()
         ).andDo(result -> {
             WebResponse<String> response = objectMapper.readValue(result.getResponse().getContentAsString(), new TypeReference<>() {
             });
@@ -65,7 +115,7 @@ public class UserControllerTest {
         mockMvc.perform(
                 get("/api/users/current")
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-API-TOKEN",  "notfound")
+                        .header("X-API-TOKEN", "notfound")
         ).andExpectAll(
                 status().isUnauthorized()
         ).andDo(result -> {
@@ -95,7 +145,7 @@ public class UserControllerTest {
     void getUserSuccess() throws Exception {
         User user = new User();
         user.setUsername("test");
-        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
         user.setName("Test");
         user.setToken("test");
         user.setTokenExpiredAt(System.currentTimeMillis() + 10000000000L);
@@ -121,7 +171,7 @@ public class UserControllerTest {
     void getUserTokenExpired() throws Exception {
         User user = new User();
         user.setUsername("test");
-        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
         user.setName("Test");
         user.setToken("test");
         user.setTokenExpiredAt(System.currentTimeMillis() - 10000000);
@@ -164,15 +214,15 @@ public class UserControllerTest {
     void updateUserSuccess() throws Exception {
         User user = new User();
         user.setUsername("test");
-        user.setPassword(BCrypt.hashpw("rahasia", BCrypt.gensalt()));
+        user.setPassword(BCrypt.hashpw("test", BCrypt.gensalt()));
         user.setName("Test");
         user.setToken("test");
         user.setTokenExpiredAt(System.currentTimeMillis() + 100000000000L);
         userRepository.save(user);
 
         UpdateUserRequest request = new UpdateUserRequest();
-        request.setName("Eko");
-        request.setPassword("eko12345");
+        request.setName("Sandy");
+        request.setPassword("password");
 
         mockMvc.perform(
                 patch("/api/users/current")
@@ -187,12 +237,12 @@ public class UserControllerTest {
             });
 
             assertNull(response.getErrors());
-            assertEquals("Eko", response.getData().getName());
+            assertEquals("Sandy", response.getData().getName());
             assertEquals("test", response.getData().getUsername());
 
             User userDb = userRepository.findById("test").orElse(null);
             assertNotNull(userDb);
-            assertTrue(BCrypt.checkpw("eko12345", userDb.getPassword()));
+            assertTrue(BCrypt.checkpw("password", userDb.getPassword()));
         });
     }
 }
