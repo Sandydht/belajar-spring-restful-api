@@ -8,9 +8,9 @@ Request Body :
 
 ```json
 {
-  "username" : "khannedy",
-  "password" : "rahasia",
-  "name" : "Eko Kurniawan Khannedy" 
+  "username" : "sandy",
+  "password" : "password",
+  "name" : "Sandy Dwi Handoko Trapsilo" 
 }
 ```
 
@@ -38,8 +38,8 @@ Request Body :
 
 ```json
 {
-  "username" : "khannedy",
-  "password" : "rahasia" 
+  "username" : "sandy",
+  "password" : "password" 
 }
 ```
 
