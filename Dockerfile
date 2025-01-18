@@ -1,7 +1,8 @@
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:23-jdk-alpine
 
-ARG JAR_FILE=target/*.jar
+WORKDIR /app
 
-COPY ${JAR_FILE} app.jar
+COPY target/belajar-spring-restful-api.jar belajar-spring-restful-api.jar
+COPY src/main/resources/application.properties config/application.properties
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java", "-jar", "belajar-spring-restful-api.jar", "--spring.config.location=file:config/"]
